@@ -1,0 +1,36 @@
+<html>
+<head>
+<script src='js/perlin.js'></script>
+</head>
+<body style='margin:0'>
+<canvas id='cnvs'></canvas>
+<script>
+let cnvs = document.getElementById('cnvs');
+cnvs.width = cnvs.height = Math.min(innerWidth, innerHeight);
+let ctx = cnvs.getContext('2d');
+
+let grid_size = 4;
+let pixels = 128;
+let pix_size = cnvs.width / pixels;
+
+function update(){
+    perlin.seed();
+    for (let y = 0; y < grid_size; y += grid_size / pixels){
+        for (let x = 0; x < grid_size; x += grid_size / pixels){
+            //let v = parseInt(perlin.get(x, y) * 360);
+            let p = perlin.get(x, y);
+							console.log(p);
+							let v = parseInt(p * 360);
+            ctx.fillStyle = 'hsl('+v+',50%,50%)';
+            ctx.fillRect(x * (cnvs.width / grid_size),
+                         y * (cnvs.width / grid_size),
+                         pix_size, pix_size);
+        }
+    }
+}
+
+update();
+setInterval(update, 2000);
+</script>
+</body>
+</html>

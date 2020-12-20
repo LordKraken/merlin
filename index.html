@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+
+		<title>MERLIN NOISE</title>
+
+		<script type="text/javascript" src="js/mersenne-twister.js"></script>
+		<script type="text/javascript" src="js/perlin.js"></script>
+
+		<script>
+
+			//*****************************************************************
+
+			// Perlin default
+			var CELL_SIZE = 24;
+			var CELL_GRID_SIZE = 2;
+			var CELL_FREQ_1 = 4;
+			var CELL_FREQ_2 = 32;
+			var CELL_FREQ_3 = 128;
+
+			// Scrolling
+			var hdir = { NONE: 0, LEFT: -CELL_GRID_SIZE, RIGHT: CELL_GRID_SIZE };
+			var vdir = { NONE: 0, UP: -CELL_GRID_SIZE, DOWN: CELL_GRID_SIZE };
+			var m_scrollX = hdir.NONE;
+			var m_scrollY = vdir.NONE;
+			var m_originX = 0;
+			var m_originY = 0;
+
+			// Rendering
+			var m_cellsSize = CELL_SIZE;
+			var m_cellsGridSize = CELL_GRID_SIZE;
+
+			// Cache cell info
+			var m_cellsInfo = new Array();
+
+			// Gl canvas/context
+			var glContext;
+			var m_domVersionActivated = true;
+			var m_forceUpdateColors = false;
+
+			//*****************************************************************
+
+			function updateGridSize(gridSize) {
+				if (gridSize <= 1)
+					return;
+
+				m_cellsGridSize = gridSize;
+				hdir = { NONE: 0, LEFT: -m_cellsGridSize, RIGHT: m_cellsGridSize };
+				vdir = { NONE: 0, UP: -m_cellsGridSize, DOWN: m_cellsGridSize };
+
+				m_forceUpdateColors = true;
+			}
+
+			//*****************************************************************
+
+			function clearCells() {
+				let domCanvas = document.getElementById('domCanvas');
+				if (domCanvas) {
+					while (domCanvas.firstChild) {
+						domCanvas.removeChild(domCanvas.firstChild);
+					}
+				}
+			}
+
+			//*****************************************************************
+
+			function createCells() {
+				let domCanvas = document.getElementById('domCanvas');
+				if (domCanvas) {
+
+					m_cellsInfo.length = 0;
+					clearCells();
+
+					let cellRows = 0;
+					let cellLines = 0;
+					if (m_domVersionActivated) {
+						cellRows = domCanvas.offsetWidth / m_cellsSize;
+						cellLines = domCanvas.offsetHeight / m_cellsSize;
+					} else {
+						cellRows = glContext.canvas.width / m_cellsSize;
+						cellLines = glContext.canvas.height / m_cellsSize;
+					}
+
+					for (line = 0; line < cellLines; line++) {
+						for (row = 0; row < cellRows; row++) {
+							let cell = 0;
+							if (m_domVersionActivated) {
+								cell = document.createElement("cell");
+								cell.className = 'cell';
+								cell.style.marginTop = (line * m_cellsSize) + 'px';
+								cell.style.marginLeft = (row * m_cellsSize) + 'px';
+								cell.style.width = m_cellsSize + 'px';
+								cell.style.height = m_cellsSize + 'px';
+								domCanvas.appendChild(cell);
+							}
+
+							var cellInfo = {cell: cell, row: row, line: line, color: getCellColor(row, line) };
+							m_cellsInfo.push(cellInfo);
+						}
+					}
+				}
+			}
+
+			//*****************************************************************
+
+			function getCellColor(row, line) {
+				let x = m_originX + row * m_cellsGridSize;
+				let y = m_originY + line * m_cellsGridSize;
+				let v = 0.1 * perlin.get(x / CELL_FREQ_1, y / CELL_FREQ_1)
+					+ 0.2 * perlin.get(x / CELL_FREQ_2, y / CELL_FREQ_2)
+					+ 0.9 * perlin.get(x / CELL_FREQ_3, y / CELL_FREQ_3)
+				return  'hsl(' + (v * 400) + ', 75%, 50%)';
+			}
+
+			//*****************************************************************
+
+			function updateCells() {
+				let perlinTimeMs = 0;
+				let domDrawTimeMs = 0;
+				let glDrawTimeMs = 0;
+				
+				// PERLIN CALCULATION
+				let now = performance.now();
+				if (m_scrollX || m_scrollY || m_forceUpdateColors) {
+					m_cellsInfo.forEach(function(cellInfo) {
+						cellInfo.color = getCellColor(cellInfo.row, cellInfo.line);
+					});
+				}
+				perlinTimeMs += performance.now() - now;
+
+				m_cellsInfo.forEach(function(cellInfo) {
+					// UPDATING DOM
+					if (m_domVersionActivated) {
+						now = performance.now();
+						cellInfo.cell.style.backgroundColor = cellInfo.color;
+						//cellInfo.cell.style.border = 'solid 1px hsl(' + v + ', 40%, 40%)';
+						domDrawTimeMs += performance.now() - now;
+					}
+
+					// DRAW GL
+					now = performance.now();
+					glContext.fillStyle = cellInfo.color;
+					glContext.fillRect((cellInfo.row * m_cellsSize), 
+						(cellInfo.line * m_cellsSize),
+                         m_cellsSize,
+                         m_cellsSize);
+					glDrawTimeMs += performance.now() - now;
+				});
+
+				var divDebugPerf = document.getElementById('divDebugPerf');
+				if (divDebugPerf) {
+					divDebugPerf.innerHTML = 'Noise calc. = ' + perlinTimeMs.toFixed(2) + 'ms<br>' +
+						'DOM draw = ' + domDrawTimeMs.toFixed(2) + 'ms<br>' +
+						'GL Draw = ' + glDrawTimeMs.toFixed(2) + 'ms';
+				}
+			}
+
+			//*****************************************************************
+
+			function createGl() {
+				let glCanvas = document.getElementById('glCanvas');
+				if (glCanvas) {
+					glContext = glCanvas.getContext('2d');
+					resizeGl();
+				}
+				else {
+					console.log('ERROR: Cannot get 2d context!');
+				}
+			}
+
+			//*****************************************************************
+
+			function resizeGl() {
+				let glCanvasContainer = document.getElementById('glCanvasContainer');
+				if (glCanvasContainer) {
+					glCanvasContainer.style.marginLeft = m_domVersionActivated ? '50%' : '0';
+					glCanvasContainer.style.width = m_domVersionActivated ? '50%' : '100%';
+					glContext.canvas.width = glCanvasContainer.clientWidth;
+					glContext.canvas.height = glCanvasContainer.clientHeight;
+				}
+				glContext.imageSmoothingEnabled = false;
+			}
+
+			//*****************************************************************
+
+			function switchDomRendering() {
+				m_domVersionActivated = !m_domVersionActivated;
+
+				resizeGl();	// This must be called before createCells()!
+				createCells();
+			}
+
+			//*****************************************************************
+
+			function scroll() {
+				m_originX += m_scrollX;
+				m_originY += m_scrollY;
+				updateCells();
+			}
+
+			//*****************************************************************
+
+			window.onload = function() {
+				createCells();
+				createGl();
+				setInterval(function() { scroll() }, 20);
+			}
+
+			window.onresize = function() {
+				resizeGl();
+				createCells();
+			}
+
+			document.onkeydown = function(e) { 
+				switch (e.keyCode) { 
+				case 37: m_scrollX = hdir.LEFT; break; 
+				case 38: m_scrollY = vdir.UP; break; 
+				case 39: m_scrollX = hdir.RIGHT; break; 
+				case 40: m_scrollY = vdir.DOWN; break; 
+				}
+			}
+
+			document.onkeyup = function(e) { 
+				switch (e.keyCode) { 
+				case 37: m_scrollX = hdir.NONE; break; 
+				case 38: m_scrollY = vdir.NONE; break; 
+				case 39: m_scrollX = hdir.NONE; break; 
+				case 40: m_scrollY = vdir.NONE; break;
+				case 65: 
+					m_cellsSize++;
+					createCells();
+					break;
+				case 66: 
+					m_cellsSize--;
+					createCells();
+					break;
+				case 67:
+					switchDomRendering();
+					break;
+				}
+			}
+
+			document.onmousewheel = function(e) {
+				if (e.deltaY < 0) {
+					updateGridSize(m_cellsGridSize - 1);
+				}
+				else if (e.deltaY > 0) {
+					updateGridSize(m_cellsGridSize + 1);
+				}
+			}
+
+		</script>
+			
+		<link rel="stylesheet" href="css/index.css" />
+
+	</head>
+
+<body>
+
+<!-- DOM and GL CANVAS -->
+<div class="canvas" id="domCanvas"></div>
+<div class="canvas glcanvas" id="glCanvasContainer">
+	<canvas id="glCanvas"></canvas>
+</div>
+
+<!-- DEBUG PANEL -->
+<div class="debug background"></div>
+<div class="debug">
+	<div><b>Debug Information</b></div>
+	<div class="perf" id="divDebugPerf"></div>
+</div>
+
+</body>
+
+</html>

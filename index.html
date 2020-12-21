@@ -17,7 +17,7 @@
 			//*****************************************************************
 
 			// Perlin default
-			var CELL_SIZE = 24;
+			var CELL_SIZE = 16;
 			var CELL_GRID_SIZE = 8;
 			var CELL_FREQ_1 = 4;
 			var CELL_FREQ_2 = 32;
@@ -170,25 +170,18 @@
 				}
 				else {
 					if (m_scrollX < 0) {
-						/*
-						for (var line = 0; line < m_cellsLines; line++) {
-							for (var row = m_cellsRows - 1; row > 0; row--) {
-								let index = row + line * m_cellsRows;
-								m_cellsColor[index] = m_cellsColor[index - 1];
-							}
-							m_cellsColor[line * m_cellsRows] = getCellColor(0, line);
-						}*/
+						m_cellsColor.pop();
+						m_cellsColor.unshift(getCellColor(0, 0));
+						for (let index = 0; index < m_cellsCount; index += m_cellsRows) {
+							m_cellsColor[index] = getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line);
+						}
 					}
 					else if (m_scrollX > 0) {
-						/*
-						for (var line = 0; line < m_cellsLines; line++) {
-							for (var row = 0; row < m_cellsRows - 1; row++) {
-								let index = row + line * m_cellsRows;
-								m_cellsColor[index] = m_cellsColor[index + 1];
-							}
-							m_cellsColor[(line + 1) * m_cellsRows - 1] = getCellColor(m_cellsRows - 1, line);
+						m_cellsColor.shift();
+						m_cellsColor.push(getCellColor(m_cellsRows - 1, m_cellsLines - 1));
+						for (let index = m_cellsRows - 1; index < m_cellsCount; index += m_cellsRows) {
+							m_cellsColor[index] = getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line);
 						}
-						*/
 					}
 
 					if (m_scrollY < 0) {

@@ -22,33 +22,45 @@
 			var CELL_FREQ_1 = 4;
 			var CELL_FREQ_2 = 32;
 			var CELL_FREQ_3 = 128;
+			var CELLBLOCK_SIZE = 64;
 
 			// Scrolling
 			var hdir = { NONE: 0, LEFT: -CELL_GRID_SIZE, RIGHT: CELL_GRID_SIZE };
 			var vdir = { NONE: 0, UP: -CELL_GRID_SIZE, DOWN: CELL_GRID_SIZE };
+			var m_screenWidth = 0;
+			var m_screenHeight = 0;
 			var m_scrollX = hdir.NONE;
 			var m_scrollY = vdir.NONE;
 			var m_originX = 0;
 			var m_originY = 0;
 
 			// Rendering
-			var m_cellsRows = 0;
-			var m_cellsLines = 0;
-			var m_cellsCount = 0;
-			var m_cellsSize = CELL_SIZE;
-			var m_cellsGridSize = CELL_GRID_SIZE;
+			var m_cellRows = 0;
+			var m_cellLines = 0;
+			var m_cellCount = 0;
+			var m_cellSize = CELL_SIZE;
+			var m_cellGridSize = CELL_GRID_SIZE;
+			var m_cellBlockGridSize = Math.floor(CELLBLOCK_SIZE / CELL_SIZE);
+			var m_cellBlockRows = 0;
+			var m_cellBlockLines = 0;
+			var m_cellBlockCount = 0;
 
 			// Cache cell info
 			var m_cellsInfo = new Array();
 			var m_cellsColor = new Array();
 
-			// Gl canvas/context
-			var glCanvas = null;
-			var glCanvas2 = null;
-			var glContext = null;
-			var glContext2 = null;
+			// DOM element
+			var m_spanDebugNoise = null;
+			var m_spanDebugDom = null;
+			var m_spanDebugGl = null;
+
+			// Canvas & Contexts
+			var m_canvasDom = null;
+			var m_canvasGl = null;
+			var m_contextGl = null;
+			var m_canvasGlList = new Array();
 			var m_domVersionActivated = false;
-			var m_forceUpdateColors = false;
+			var m_forceUpdateColors = true;
 
 			//*****************************************************************
 
@@ -56,9 +68,9 @@
 				if (gridSize < 1)
 					return;
 
-				m_cellsGridSize = gridSize;
-				hdir = { NONE: 0, LEFT: -m_cellsGridSize, RIGHT: m_cellsGridSize };
-				vdir = { NONE: 0, UP: -m_cellsGridSize, DOWN: m_cellsGridSize };
+				m_cellGridSize = gridSize;
+				hdir = { NONE: 0, LEFT: -m_cellGridSize, RIGHT: m_cellGridSize };
+				vdir = { NONE: 0, UP: -m_cellGridSize, DOWN: m_cellGridSize };
 
 				m_forceUpdateColors = true;
 			}
@@ -66,87 +78,83 @@
 			//*****************************************************************
 
 			function clearCells() {
-				let domCanvas = document.getElementById('domCanvas');
-				if (domCanvas) {
-					while (domCanvas.firstChild) {
-						domCanvas.removeChild(domCanvas.firstChild);
-					}
+				m_cellsInfo.length = 0;
+				m_cellsColor.length = 0;
+				while (m_canvasDom.firstChild) {
+					m_canvasDom.removeChild(m_canvasDom.firstChild);
 				}
-			}
-
-			//*****************************************************************
-
-			function hashFnv32a(str) {
-			    /*jshint bitwise:false */
-			    var i, l, hval = 0x811c9dc5;
-
-			    for (i = 0, l = str.length; i < l; i++) {
-			        hval ^= str.charCodeAt(i);
-			        hval += (hval << 1) + (hval << 4) + (hval << 7) + (hval << 8) + (hval << 24);
-			    }
-			    return hval >>> 0;
-			}
-
-			//*****************************************************************
-
-			function getCellHash(row, line) {
-				return hashFnv32a('r:' + row + 'l:' + line);
 			}
 
 			//*****************************************************************
 
 			function createCells() {
-				let domCanvas = document.getElementById('domCanvas');
-				if (domCanvas) {
+				clearCells();				
 
-					m_cellsInfo.length = 0;
-					m_cellsColor.length = 0;
-					clearCells();
+				if (m_domVersionActivated) {
+					m_cellRows = Math.floor(m_canvasDom.offsetWidth / m_cellSize) + 1;
+					m_cellLines = Math.floor(m_canvasDom.offsetHeight / m_cellSize) + 1;
+				} else {
+					m_cellRows = Math.floor(m_contextGl.canvas.width / m_cellSize) + 1;
+					m_cellLines = Math.floor(m_contextGl.canvas.height / m_cellSize) + 1;
+				}
+				m_cellCount = m_cellRows * m_cellLines;
 
-					if (m_domVersionActivated) {
-						m_cellsRows = Math.floor(domCanvas.offsetWidth / m_cellsSize) + 1;
-						m_cellsLines = Math.floor(domCanvas.offsetHeight / m_cellsSize) + 1;
-					} else {
-						m_cellsRows = Math.floor(glContext.canvas.width / m_cellsSize) + 1;
-						m_cellsLines = Math.floor(glContext.canvas.height / m_cellsSize) + 1;
-					}
-					m_cellsCount = m_cellsRows * m_cellsLines;
+				m_cellBlockRows = Math.floor(m_screenWidth / CELLBLOCK_SIZE) + 1;
+				m_cellBlockLines = Math.floor(m_screenHeight / CELLBLOCK_SIZE) + 1;
+				m_cellBlockCount = m_cellBlockRows * m_cellBlockLines;
 
-					for (line = 0; line < m_cellsLines; line++) {
-						for (row = 0; row < m_cellsRows; row++) {
-							let x = row * m_cellsSize;
-							let y = line * m_cellsSize;
-							let index = row + (line * m_cellsRows);
-
-							let cell = 0;
-							if (m_domVersionActivated) {
-								cell = document.createElement("cell");
-								cell.className = 'cell';
-								cell.style.marginTop = y + 'px';
-								cell.style.marginLeft = x + 'px';
-								cell.style.width = m_cellsSize + 'px';
-								cell.style.height = m_cellsSize + 'px';
-								domCanvas.appendChild(cell);
-							}
-
-							m_cellsInfo.push({cell: cell, 
-								index: index, 
-								row: row, 
-								line: line, 
-								x: x, 
-								y: y, 
-							});
-							m_cellsColor.push(getCellColor(row, line));
-						}
+				m_canvasGlList.length = 0;
+				for (let line = 0; line < m_cellBlockLines; line++) {
+					for (let row = 0; row < m_cellBlockRows; row++) {
+						let canvas = document.createElement('canvas');
+						canvas.width = CELLBLOCK_SIZE;
+						canvas.height = CELLBLOCK_SIZE;
+						m_canvasGlList.push({canvas: canvas,
+							context: canvas.getContext('2d'),
+							x: row * CELLBLOCK_SIZE,
+							y: line * CELLBLOCK_SIZE,
+							crow: row * m_cellBlockGridSize,
+							cline: line * m_cellBlockGridSize,
+						});
 					}
 				}
+
+				for (line = 0; line < m_cellLines; line++) {
+					for (row = 0; row < m_cellRows; row++) {
+						let x = row * m_cellSize;
+						let y = line * m_cellSize;
+						let index = row + (line * m_cellRows);
+
+						let cell = 0;
+						if (m_domVersionActivated) {
+							cell = document.createElement("cell");
+							cell.className = 'cell';
+							cell.style.marginTop = y + 'px';
+							cell.style.marginLeft = x + 'px';
+							cell.style.width = m_cellSize + 'px';
+							cell.style.height = m_cellSize + 'px';
+							m_canvasDom.appendChild(cell);
+						}
+
+						m_cellsInfo.push({cell: cell, 
+							index: index, 
+							row: row, 
+							line: line, 
+							x: x, 
+							y: y, 
+						});
+						m_cellsColor.push(getCellColor(row, line));
+					}
+				}
+
+				m_forceUpdateColors = true;
 			}
 
 			//*****************************************************************
 
 			function getCellColor(row, line) {
-				let x = m_originX + row * m_cellsGridSize;
-				let y = m_originY + line * m_cellsGridSize;
+				let x = m_originX + row * m_cellGridSize;
+				let y = m_originY + line * m_cellGridSize;
 				let v = 0.1 * perlin.get(x / CELL_FREQ_1, y / CELL_FREQ_1)
 					+ 0.2 * perlin.get(x / CELL_FREQ_2, y / CELL_FREQ_2)
 					+ 0.9 * perlin.get(x / CELL_FREQ_3, y / CELL_FREQ_3)
@@ -163,127 +171,140 @@
 				// PERLIN CALCULATION
 				var now = performance.now();
 				if (m_forceUpdateColors) {
-					m_forceUpdateColors = false;
 					m_cellsInfo.forEach(function(cellInfo) {
 						m_cellsColor[cellInfo.index] = getCellColor(cellInfo.row, cellInfo.line);
 					});
 				}
 				else {
 					if (m_scrollX < 0) {
+						m_originX += m_scrollX;
 						m_cellsColor.pop();
 						m_cellsColor.unshift(getCellColor(0, 0));
-						for (let index = 0; index < m_cellsCount; index += m_cellsRows) {
+						for (let index = 0; index < m_cellCount; index += m_cellRows) {
 							m_cellsColor[index] = getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line);
 						}
 					}
 					else if (m_scrollX > 0) {
+						m_originX += m_scrollX;
 						m_cellsColor.shift();
-						m_cellsColor.push(getCellColor(m_cellsRows - 1, m_cellsLines - 1));
-						for (let index = m_cellsRows - 1; index < m_cellsCount; index += m_cellsRows) {
+						m_cellsColor.push(getCellColor(m_cellRows - 1, m_cellLines - 1));
+						for (let index = m_cellRows - 1; index < m_cellCount; index += m_cellRows) {
 							m_cellsColor[index] = getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line);
 						}
 					}
 
 					if (m_scrollY < 0) {
-						m_cellsColor = m_cellsColor.slice(0, m_cellsCount - m_cellsRows);
-						let index = m_cellsRows;
+						m_originY += m_scrollY;
+						m_cellsColor = m_cellsColor.slice(0, m_cellCount - m_cellRows);
+						let index = m_cellRows;
 						while (index--) {
 							m_cellsColor.unshift(getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line));
 						}
 					}
 					else if (m_scrollY > 0) {
-						m_cellsColor = m_cellsColor.slice(m_cellsRows, m_cellsCount);
-						let index = m_cellsCount - m_cellsRows - 1;
-						while (index++ < m_cellsCount - 1) {
+						m_originY += m_scrollY;
+						m_cellsColor = m_cellsColor.slice(m_cellRows, m_cellCount);
+						let index = m_cellCount - m_cellRows - 1;
+						while (index++ < m_cellCount - 1) {
 							m_cellsColor.push(getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line));
 						}
 					}
 				}
 				perlinTimeMs += performance.now() - now;
 
-				m_cellsInfo.forEach(function(cellInfo) {
-					// UPDATING DOM
-					if (m_domVersionActivated) {
-						now = performance.now();
-						cellInfo.cell.style.backgroundColor = m_cellsColor[cellInfo.index];
-						//cellInfo.cell.style.border = 'solid 1px hsl(' + v + ', 40%, 40%)';
-						domDrawTimeMs += performance.now() - now;
-					}
+				if (m_forceUpdateColors || m_scrollX || m_scrollY) {
+					m_forceUpdateColors = false;
 
-					// DRAW GL
+					// DRAW PURE DOM VERSION
 					now = performance.now();
-					glContext2.fillStyle = m_cellsColor[cellInfo.index];
-					glContext2.fillRect(cellInfo.x, cellInfo.y, m_cellsSize, m_cellsSize);
-					glDrawTimeMs += performance.now() - now;
-				});
+					if (m_domVersionActivated) {
+						m_cellsInfo.forEach(function(cellInfo) {
+							cellInfo.cell.style.backgroundColor = m_cellsColor[cellInfo.index];
+							//cellInfo.cell.style.border = 'solid 1px hsl(' + v + ', 40%, 40%)';
+						});
+					}
+					domDrawTimeMs += performance.now() - now;
 
+					// UPDATE PURE CANVAS VERSION
+					now = performance.now();
+					m_cellsInfo.forEach(function(cellInfo) {
+						m_contextGl.fillStyle = m_cellsColor[cellInfo.index];
+						m_contextGl.fillRect(cellInfo.x, cellInfo.y, m_cellSize, m_cellSize);
+						/*
+						for (let line = cdata.cline; line < cdata.cline + m_cellBlockGridSize; line++) {
+							for (let row = cdata.crow; row < cdata.crow + m_cellBlockGridSize; row++) {
+								cdata.context.fillStyle = m_cellsColor[row + line * m_cellRows];
+								cdata.context.fillRect(0, 0, m_cellSize, m_cellSize);
+							}
+						}*/
+					});
+					glDrawTimeMs += performance.now() - now;
+				}
+
+				// DRAW PURE CANVAS VERSION
 				now = performance.now();
-				glContext.drawImage(glCanvas2, 0, 0);
+				m_canvasGlList.forEach(function(cdata) {
+					//m_contextGl.drawImage(cdata.canvas, cdata.x, cdata.y);
+				});
 				glDrawTimeMs += performance.now() - now;
 
-				let divDebugPerf = document.getElementById('divDebugPerf');
-				if (divDebugPerf) {
-					divDebugPerf.innerHTML = 'Noise calc. = ' + perlinTimeMs.toFixed(2) + 'ms<br>' +
-						'DOM draw = ' + domDrawTimeMs.toFixed(2) + 'ms<br>' +
-						'GL Draw = ' + glDrawTimeMs.toFixed(2) + 'ms';
-				}
+				// Update performance information
+				m_spanDebugNoise.innerHTML = perlinTimeMs.toFixed(2);
+				m_spanDebugDom.innerHTML = domDrawTimeMs.toFixed(2);
+				m_spanDebugGl.innerHTML = glDrawTimeMs.toFixed(2);
 			}
 
 			//*****************************************************************
 
-			function createGl() {
-				glContext = null;
-				glContext2 = null;
+			function createCanvas() {
+				m_canvasDom = null;
+				m_canvasGl = null;
+				m_contextGl = null;
 
-				glCanvas = document.getElementById('glCanvas');
-				if (glCanvas) {
-					glContext = glCanvas.getContext('2d');
-
-					glCanvas2 = document.createElement('canvas');
-					if (glCanvas2) {
-						glContext2 = glCanvas2.getContext('2d');
-					}
+				m_canvasDom = document.getElementById('canvasDom');
+				if (!m_canvasDom) {
+					console.log('ERROR: Cannot get Dom canvas!');
+					return;
 				}
 
-				if (glContext && glContext2) {
-					resizeGl();
+				m_canvasGl = document.getElementById('canvasGl');
+				if (!m_canvasGl) {
+					console.log('ERROR: Cannot get drawing canvas!');
+					return;
 				}
-				else {
+
+				m_contextGl = m_canvasGl.getContext('2d');
+				if (!m_contextGl) {
 					console.log('ERROR: Cannot get 2d context!');
 				}
+
+				resizeCanvas();
 			}
 
 			//*****************************************************************
 
-			function resizeGl() {
-				let glCanvasContainer = document.getElementById('glCanvasContainer');
-				if (glCanvasContainer) {
-					glCanvasContainer.style.marginLeft = m_domVersionActivated ? '50%' : '0';
-					glCanvasContainer.style.width = m_domVersionActivated ? '50%' : '100%';
-					glCanvas.width = glCanvasContainer.clientWidth;
-					glCanvas.height = glCanvasContainer.clientHeight;
-					glCanvas2.width = glCanvasContainer.clientWidth;
-					glCanvas2.height = glCanvasContainer.clientHeight;
+			function resizeCanvas() {
+				m_forceUpdateColors = true;
+
+				let container = document.getElementById('canvasGlContainer');
+				if (container) {
+					container.style.marginLeft = m_domVersionActivated ? '50%' : '0';
+					container.style.width = m_domVersionActivated ? '50%' : '100%';
+
+					m_screenWidth = container.clientWidth;
+					m_screenHeight = container.clientHeight;
+					m_canvasGl.width = m_screenWidth;
+					m_canvasGl.height = m_screenHeight;
 				}
-				glContext.imageSmoothingEnabled = false;
-				glContext2.imageSmoothingEnabled = false;
+				m_contextGl.imageSmoothingEnabled = false;
 			}
 
 			//*****************************************************************
 
 			function switchDomRendering() {
 				m_domVersionActivated = !m_domVersionActivated;
-
-				resizeGl();	// This must be called before createCells()!
+				resizeCanvas();	// This must be called before createCells()!
 				createCells();
-			}
-
-			//*****************************************************************
-
-			function scroll() {
-				m_originX += m_scrollX;
-				m_originY += m_scrollY;
-				updateCells();
 			}
 
 			//*****************************************************************
@@ -306,13 +327,21 @@
 					});
 				}
 
-				createGl();
+				// Cache debug info container
+				m_spanDebugNoise = document.getElementById('spanDebugNoise');
+				m_spanDebugDom = document.getElementById('spanDebugDom');
+				m_spanDebugGl = document.getElementById('spanDebugGl');
+				if (!m_spanDebugNoise || !m_spanDebugDom || !m_spanDebugGl) {
+					console.log('ERROR: Cannot get debug information containers!');
+				}
+
+				createCanvas();
 				createCells();
-				setInterval(function() { scroll() }, 50);
+				setInterval(updateCells, 25);
 			}
 
 			window.onresize = function() {
-				resizeGl();
+				resizeCanvas();
 				createCells();
 			}
 
@@ -332,11 +361,11 @@
 				case 39: m_scrollX = hdir.NONE; break; 
 				case 40: m_scrollY = vdir.NONE; break;
 				case 65: 
-					m_cellsSize++;
+					m_cellSize++;
 					createCells();
 					break;
 				case 66: 
-					m_cellsSize--;
+					m_cellSize--;
 					createCells();
 					break;
 				case 67:
@@ -347,10 +376,10 @@
 
 			document.onmousewheel = function(e) {
 				if (e.deltaY < 0) {
-					updateGridSize(m_cellsGridSize - 1);
+					updateGridSize(m_cellGridSize - 1);
 				}
 				else if (e.deltaY > 0) {
-					updateGridSize(m_cellsGridSize + 1);
+					updateGridSize(m_cellGridSize + 1);
 				}
 			}
 
@@ -364,9 +393,9 @@
 
 <!-- DOM and GL CANVAS -->
 <div class="canvasParent" id ="canvasParent">
-<div class="canvas" id="domCanvas"></div>
-<div class="canvas glcanvas" id="glCanvasContainer">
-	<canvas id="glCanvas"></canvas>
+<div class="canvas" id="canvasDom"></div>
+<div class="canvas gl" id="canvasGlContainer">
+	<canvas id="canvasGl"></canvas>
 </div>
 </div>
 
@@ -374,6 +403,11 @@
 <div class="debug background"></div>
 <div class="debug">
 	<div><b>Debug Information</b></div>
+	<div class="perf">
+		Noise calc. = <span id="spanDebugNoise">0</span> ms<br>
+		DOM draw = <span id="spanDebugDom">0</span> ms<br>
+		GL Draw = <span id="spanDebugGl">0</span> ms
+	</div>
 	<div class="perf" id="divDebugPerf"></div>
 </div>
 

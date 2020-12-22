@@ -25,11 +25,12 @@ table, tr, td {
 .debug.background {
 	background-color: rgb(0, 0, 0);
 	opacity: 35%;
-	border-radius: 4px;
+	border-radius: 6px;
 }
 .debug .perf {
 	margin-top: 4px;
 	margin-left: 4px;
+	color: yellow;
 }
 .canvas {
 	position: absolute;
@@ -40,11 +41,10 @@ table, tr, td {
 	border: none;
 	margin: 0;
 }
-.canvas.glcanvas {
+.canvas.gl {
 	margin-left: 50%;
 	background-color: red;
 }
-
 .cell {
 	position: absolute;
 	display: inline-block;

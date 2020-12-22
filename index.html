@@ -28,8 +28,10 @@
 			var vdir = { NONE: 0, UP: -CELL_GRID_SIZE, DOWN: CELL_GRID_SIZE };
 			var m_screenWidth = 0;
 			var m_screenHeight = 0;
-			var m_scrollX = hdir.NONE;
-			var m_scrollY = vdir.NONE;
+			var m_scrollDx = hdir.NONE;
+			var m_scrollDy = vdir.NONE;
+			var m_scrollDxCount = 0;
+			var m_scrollDyCount = 0;
 			var m_originX = 0;
 			var m_originY = 0;
 
@@ -150,16 +152,20 @@
 					});
 				}
 				else {
-					if (m_scrollX < 0) {
-						m_originX += m_scrollX;
+					if (m_scrollDx < 0) {
+						m_forceUpdateColors = true;
+						m_originX += m_scrollDx;
+						//m_scrollDx = 0;
 						m_cellsColor.pop();
 						m_cellsColor.unshift(getCellColor(0, 0));
 						for (let index = 0; index < m_cellCount; index += m_cellRows) {
 							m_cellsColor[index] = getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line);
 						}
 					}
-					else if (m_scrollX > 0) {
-						m_originX += m_scrollX;
+					else if (m_scrollDx > 0) {
+						m_forceUpdateColors = true;
+						m_originX += m_scrollDx;
+						//m_scrollDx = 0;
 						m_cellsColor.shift();
 						m_cellsColor.push(getCellColor(m_cellRows - 1, m_cellLines - 1));
 						for (let index = m_cellRows - 1; index < m_cellCount; index += m_cellRows) {
@@ -167,16 +173,20 @@
 						}
 					}
 
-					if (m_scrollY < 0) {
-						m_originY += m_scrollY;
+					if (m_scrollDy < 0) {
+						m_forceUpdateColors = true;
+						m_originY += m_scrollDy;
+						//m_scrollDy = 0;
 						m_cellsColor = m_cellsColor.slice(0, m_cellCount - m_cellRows);
 						let index = m_cellRows;
 						while (index--) {
 							m_cellsColor.unshift(getCellColor(m_cellsInfo[index].row, m_cellsInfo[index].line));
 						}
 					}
-					else if (m_scrollY > 0) {
-						m_originY += m_scrollY;
+					else if (m_scrollDy > 0) {
+						m_forceUpdateColors = true;
+						m_originY += m_scrollDy;
+						//m_scrollDy = 0;
 						m_cellsColor = m_cellsColor.slice(m_cellRows, m_cellCount);
 						let index = m_cellCount - m_cellRows - 1;
 						while (index++ < m_cellCount - 1) {
@@ -186,7 +196,7 @@
 				}
 				perlinTimeMs += performance.now() - now;
 
-				if (m_forceUpdateColors || m_scrollX || m_scrollY) {
+				if (m_forceUpdateColors) {
 					m_forceUpdateColors = false;
 
 					// DRAW PURE DOM VERSION
@@ -274,17 +284,27 @@
 				var canvasParent = document.getElementById('canvasParent');
 				if (canvasParent) {
 					var hammertime = new Hammer(canvasParent);
-					hammertime.on('pan', function(ev) {
-						//console.log(ev.deltaX + ' ' + ev.deltaY);
-						if (Math.abs(ev.deltaX) > 16) {
-							m_scrollX = ev.deltaX / Math.abs(ev.deltaX);
+					hammertime.on('pan panend', function(ev) {
+						//console.log(ev);
+
+						if (ev.type == 'panend') {
+							m_scrollDx = 0;
+							m_scrollDy = 0;
+							return;
 						}
-						if (Math.abs(ev.deltaY) > 16) {
-							m_scrollY = ev.deltaY / Math.abs(ev.deltaY);
+
+						if (Math.abs(ev.deltaX) > 32) {
+							m_scrollDx = ev.deltaX > 0 ? hdir.RIGHT : hdir.LEFT;;
 						}
-						scroll();
-						m_scrollX = 0;
-						m_scrollY = 0;
+						else {
+							m_scrollDx = hdir.NONE;
+						}
+
+						if (Math.abs(ev.deltaY) > 32) {
+							m_scrollDy = ev.deltaY > 0 ? vdir.DOWN : vdir.UP;;
+						} else {
+							m_scrollDy = vdir.NONE;
+						}
 					});
 				}
 
@@ -308,19 +328,19 @@
 
 			document.onkeydown = function(e) { 
 				switch (e.keyCode) { 
-				case 37: m_scrollX = hdir.LEFT; break; 
-				case 38: m_scrollY = vdir.UP; break; 
-				case 39: m_scrollX = hdir.RIGHT; break; 
-				case 40: m_scrollY = vdir.DOWN; break; 
+				case 37: m_scrollDx = hdir.LEFT; break; 
+				case 38: m_scrollDy = vdir.UP; break; 
+				case 39: m_scrollDx = hdir.RIGHT; break; 
+				case 40: m_scrollDy = vdir.DOWN; break; 
 				}
 			}
 
 			document.onkeyup = function(e) { 
 				switch (e.keyCode) { 
-				case 37: m_scrollX = hdir.NONE; break; 
-				case 38: m_scrollY = vdir.NONE; break; 
-				case 39: m_scrollX = hdir.NONE; break; 
-				case 40: m_scrollY = vdir.NONE; break;
+				case 37: m_scrollDx = hdir.NONE; break; 
+				case 38: m_scrollDy = vdir.NONE; break; 
+				case 39: m_scrollDx = hdir.NONE; break; 
+				case 40: m_scrollDy = vdir.NONE; break;
 				case 65: 
 					m_cellSize++;
 					createCells();

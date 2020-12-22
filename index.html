@@ -22,7 +22,6 @@
 			var CELL_FREQ_1 = 4;
 			var CELL_FREQ_2 = 32;
 			var CELL_FREQ_3 = 128;
-			var CELLBLOCK_SIZE = 64;
 
 			// Scrolling
 			var hdir = { NONE: 0, LEFT: -CELL_GRID_SIZE, RIGHT: CELL_GRID_SIZE };
@@ -40,10 +39,6 @@
 			var m_cellCount = 0;
 			var m_cellSize = CELL_SIZE;
 			var m_cellGridSize = CELL_GRID_SIZE;
-			var m_cellBlockGridSize = Math.floor(CELLBLOCK_SIZE / CELL_SIZE);
-			var m_cellBlockRows = 0;
-			var m_cellBlockLines = 0;
-			var m_cellBlockCount = 0;
 
 			// Cache cell info
 			var m_cellsInfo = new Array();
@@ -58,7 +53,6 @@
 			var m_canvasDom = null;
 			var m_canvasGl = null;
 			var m_contextGl = null;
-			var m_canvasGlList = new Array();
 			var m_domVersionActivated = false;
 			var m_forceUpdateColors = true;
 
@@ -98,26 +92,6 @@
 					m_cellLines = Math.floor(m_contextGl.canvas.height / m_cellSize) + 1;
 				}
 				m_cellCount = m_cellRows * m_cellLines;
-
-				m_cellBlockRows = Math.floor(m_screenWidth / CELLBLOCK_SIZE) + 1;
-				m_cellBlockLines = Math.floor(m_screenHeight / CELLBLOCK_SIZE) + 1;
-				m_cellBlockCount = m_cellBlockRows * m_cellBlockLines;
-
-				m_canvasGlList.length = 0;
-				for (let line = 0; line < m_cellBlockLines; line++) {
-					for (let row = 0; row < m_cellBlockRows; row++) {
-						let canvas = document.createElement('canvas');
-						canvas.width = CELLBLOCK_SIZE;
-						canvas.height = CELLBLOCK_SIZE;
-						m_canvasGlList.push({canvas: canvas,
-							context: canvas.getContext('2d'),
-							x: row * CELLBLOCK_SIZE,
-							y: line * CELLBLOCK_SIZE,
-							crow: row * m_cellBlockGridSize,
-							cline: line * m_cellBlockGridSize,
-						});
-					}
-				}
 
 				for (line = 0; line < m_cellLines; line++) {
 					for (row = 0; row < m_cellRows; row++) {
@@ -225,28 +199,14 @@
 					}
 					domDrawTimeMs += performance.now() - now;
 
-					// UPDATE PURE CANVAS VERSION
+					// DRAW PURE CANVAS VERSION
 					now = performance.now();
 					m_cellsInfo.forEach(function(cellInfo) {
 						m_contextGl.fillStyle = m_cellsColor[cellInfo.index];
 						m_contextGl.fillRect(cellInfo.x, cellInfo.y, m_cellSize, m_cellSize);
-						/*
-						for (let line = cdata.cline; line < cdata.cline + m_cellBlockGridSize; line++) {
-							for (let row = cdata.crow; row < cdata.crow + m_cellBlockGridSize; row++) {
-								cdata.context.fillStyle = m_cellsColor[row + line * m_cellRows];
-								cdata.context.fillRect(0, 0, m_cellSize, m_cellSize);
-							}
-						}*/
 					});
 					glDrawTimeMs += performance.now() - now;
 				}
-
-				// DRAW PURE CANVAS VERSION
-				now = performance.now();
-				m_canvasGlList.forEach(function(cdata) {
-					//m_contextGl.drawImage(cdata.canvas, cdata.x, cdata.y);
-				});
-				glDrawTimeMs += performance.now() - now;
 
 				// Update performance information
 				m_spanDebugNoise.innerHTML = perlinTimeMs.toFixed(2);
@@ -293,6 +253,7 @@
 
 					m_screenWidth = container.clientWidth;
 					m_screenHeight = container.clientHeight;
+
 					m_canvasGl.width = m_screenWidth;
 					m_canvasGl.height = m_screenHeight;
 				}

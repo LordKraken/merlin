@@ -4,12 +4,104 @@
 		"selected_items":
 		[
 			[
-				"m_s",
-				"m_scrollY"
+				"de",
+				"deltaX"
+			],
+			[
+				"resi",
+				"resizeCells"
+			],
+			[
+				"get",
+				"getContext"
+			],
+			[
+				"m_can",
+				"m_canvasBuffer"
+			],
+			[
+				"m_con",
+				"m_contextBuffer"
+			],
+			[
+				"m_cellr",
+				"m_cellRows"
 			],
 			[
 				"m_ce",
-				"m_domVersionActivated"
+				"m_cellLines"
+			],
+			[
+				"fill",
+				"fillStyle"
+			],
+			[
+				"m_cont",
+				"m_contextGlList"
+			],
+			[
+				"CELL",
+				"CELLBLOCK_SIZE"
+			],
+			[
+				"for",
+				"forEach"
+			],
+			[
+				"mCa",
+				"m_canvasDom"
+			],
+			[
+				"create",
+				"createElement"
+			],
+			[
+				"m_canvasGl",
+				"m_canvasGlList"
+			],
+			[
+				"m_cellb",
+				"m_cellBlockSize"
+			],
+			[
+				"span",
+				"spanDebugNoise"
+			],
+			[
+				"m_sp",
+				"m_spanDebugNoise"
+			],
+			[
+				"m_cel",
+				"m_cellsRows"
+			],
+			[
+				"glCan",
+				"glCanvas2"
+			],
+			[
+				"gl",
+				"glContext"
+			],
+			[
+				"m_cell",
+				"m_cellsCount"
+			],
+			[
+				"M_cell",
+				"m_cellsCount"
+			],
+			[
+				"m",
+				"m_cellsRows"
+			],
+			[
+				"m_Ce",
+				"m_cellsColor"
+			],
+			[
+				"m_s",
+				"m_scrollY"
 			],
 			[
 				"debug",
@@ -24,10 +116,6 @@
 				"font-size\tproperty"
 			],
 			[
-				"m_cel",
-				"m_cellsGridSize"
-			],
-			[
 				"see",
 				"SeedRandom"
 			],
@@ -38,10 +126,6 @@
 			[
 				"cli",
 				"clientWidth"
-			],
-			[
-				"create",
-				"createGl"
 			],
 			[
 				"backgrou",
@@ -430,90 +514,6 @@
 			[
 				"LYNKS_ASCII_",
 				"LYNKS_ASCII_WIDTH"
-			],
-			[
-				"SC",
-				"SCBChar"
-			],
-			[
-				"sh_id",
-				"sh_idl_1"
-			],
-			[
-				"LYNKS",
-				"LYNKS_SCREEN_CAMERA_X"
-			],
-			[
-				"l",
-				"lmoduleId"
-			],
-			[
-				"lmo",
-				"lmoduleOffset"
-			],
-			[
-				"gp",
-				"g_playerScore"
-			],
-			[
-				"BLl",
-				"BLL_SetScbData"
-			],
-			[
-				"BLL",
-				"BLL_SetScbData"
-			],
-			[
-				"SPRITE_",
-				"SPRITE_TITLE_SHIP"
-			],
-			[
-				"ehit",
-				"ehitsize"
-			],
-			[
-				"_set",
-				"_setEnemyInactive"
-			],
-			[
-				"LYNKS_SCRE",
-				"LYNKS_SCREEN_CAMERA_X"
-			],
-			[
-				"BULL",
-				"BULLET_TIMEOUT_SPAWN"
-			],
-			[
-				"efire",
-				"efiretype"
-			],
-			[
-				"MAX",
-				"ENEMY_MAX_WAVE"
-			],
-			[
-				"INR",
-				"INTRO_ANIMATION_SHIP_EXIT"
-			],
-			[
-				"zoo",
-				"zoomTarget"
-			],
-			[
-				"INTRO_ANIMATION_T",
-				"INTRO_ANIMATION_TITLE"
-			],
-			[
-				"timer",
-				"animTimer"
-			],
-			[
-				"g_play",
-				"g_playerY"
-			],
-			[
-				"ENEM",
-				"ENEMY_MAX_WAVE"
 			]
 		]
 	},
@@ -523,7 +523,7 @@
 			"file": "css/index.css",
 			"settings":
 			{
-				"buffer_size": 847,
+				"buffer_size": 856,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -532,7 +532,7 @@
 			"file": "index.html",
 			"settings":
 			{
-				"buffer_size": 7496,
+				"buffer_size": 11109,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -649,6 +649,8 @@
 	],
 	"file_history":
 	[
+		"/C/Projects/Web/merlin/js/hash.js",
+		"/C/Projects/Web/merlin/js/hammer.min.js",
 		"/C/Projects/Web/merlin/index2.html",
 		"/C/Projects/Lynx/Dev/odynexus/src/gun.c",
 		"/C/Projects/Lynx/Dev/odynexus/src/enemy.c",
@@ -774,13 +776,11 @@
 		"/C/Projects/Lynx/Dev/odynexus/makefile.bat",
 		"/C/Users/Alex/AppData/Local/Temp/tmpAA4E.tmp.c",
 		"/C/Users/Alex/AppData/Local/Temp/tmp7EBA.tmp.c",
-		"/C/Users/Alex/AppData/Local/Temp/tmpD50E.tmp.c",
-		"/C/Users/Alex/AppData/Local/Temp/tmpB3DC.tmp.h",
-		"/C/Users/Alex/AppData/Local/Temp/tmp69F0.tmp.h"
+		"/C/Users/Alex/AppData/Local/Temp/tmpD50E.tmp.c"
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 28.0
 	},
 	"find_in_files":
 	{
@@ -817,6 +817,57 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"m_scrollDy",
+			"m_scrollDx",
+			"m_scrollDy",
+			"m_scrollY",
+			"m_scrollX",
+			"block",
+			"m_canvasGlList",
+			"m_forceUpdateColors",
+			"createCells",
+			"resizeCells",
+			"createCells",
+			"m_cellsColor",
+			"buffer",
+			"createElement",
+			"console.log",
+			"m_can",
+			"m_contextGl",
+			"contextgl",
+			"CELLBLOCK_SIZE",
+			"m_canvasGlContext",
+			"m_cellBlockSize",
+			"createCanvas",
+			"12",
+			"m_glContext",
+			"glContext",
+			"glCanvas",
+			"glCanvas2",
+			"glCanvas",
+			"m_domVersionActivated",
+			"m_forceUpdateColors",
+			"clearCells",
+			"updateGridSize",
+			"m_cellGridSize",
+			"m_cellSize",
+			"m_cellsGridSize",
+			"m_cellsSize",
+			"m_cellsCount",
+			"m_cellsLines",
+			"m_cellsRows",
+			"setInterval",
+			"getCellHash",
+			".color",
+			"glContext2",
+			"m_cellsColor",
+			"m_cellsInfo",
+			"m_domVersionActivated",
+			"LEFT",
+			"m_cellsGridSize",
+			"m_scrollY",
+			"* m_cellsSize",
+			".color",
 			"world",
 			"domCanvas",
 			"worldCanvas",
@@ -893,58 +944,7 @@
 			"lx2",
 			"HitByLasers",
 			"LASER_TYPE_BOMB",
-			"LASER_TYPE_LASER",
-			"ltyp",
-			"ldirection",
-			"LASER_HORIZONTAL",
-			"LASER_VERTICAL",
-			"ELaserDirection",
-			"HitByLasers",
-			"SCB_CTL1_ZOOM_REUSEPAL",
-			"frameStart",
-			"InitGame",
-			"StartingLevel",
-			"InitGame",
-			"SizeOfUIText",
-			"EngineMain",
-			"_rechargeGun",
-			"_updateLaserScbPosition",
-			"GUN_ENERGY_DROP",
-			"HitByLasers",
-			"reusepal",
-			"_spritesLaser",
-			"SPRITE_LASER_LEVEL1",
-			"_resetGun",
-			"_resetLasers",
-			"g_lynks_debug",
-			"_resetGun",
-			"g_gun_energy",
-			"_resetLasers",
-			"lstate",
-			"bcop",
-			"bzer",
-			"COLLISION_HIGH_PRECISION_LASER",
-			"_la1_1",
-			"lx2",
-			"ly",
-			"_updateLaserScbPosition",
-			"_spawnDelay",
-			"GetNextAction",
-			"ACTION_TYPE_WAIT",
-			"_spawnDelay",
-			"FILE_IMAGE_SILLY",
-			"random()",
-			"g_lynks_uHblData",
-			"SpawnerBonusReset",
-			"_bonusWaveId",
-			"BONUS_SPAWN_FREQ_MIN",
-			"BONUS_TYPE_SHIELD",
-			"_bonusWaveId",
-			"_bonusHolderId",
-			"BONUS_PROBABILITY_MAX",
-			"BONUS_PROBABILITY_",
-			"BONUS_SPAWN_FREQ_MIN",
-			"ebonus"
+			"LASER_TYPE_LASER"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -952,6 +952,16 @@
 		"regex": false,
 		"replace_history":
 		[
+			"m_scrollDy",
+			"m_scrollDx",
+			"m_contextGl",
+			"m_glContext",
+			"m_canvasGl",
+			"m_cellGridSize",
+			"m_cellSize",
+			"m_cellCount",
+			"m_cellLines",
+			"m_cellRows",
 			"domCanvas",
 			"",
 			"LYNKS_USE_CUSTOM_FONT",
@@ -1069,17 +1079,7 @@
 			"_bossIsSpawned",
 			"ENEMY_MAX_WAVE",
 			"_updatePlayerPosition",
-			"IsLevelOver",
-			"_playerAnimIndex",
-			"_playerAnimTimer",
-			"_playerMovingTimer",
-			"LYNKS_UpdateGameTimer",
-			"gcharge",
-			"gshot",
-			"LYNKS_UpdateGameTimer",
-			"_enemyAliveCount",
-			"_bossIsDead",
-			"lscrollStopRight"
+			"IsLevelOver"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -1099,15 +1099,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 847,
+						"buffer_size": 856,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								461,
-								461
+								696,
+								696
 							]
 						],
 						"settings":
@@ -1116,10 +1116,10 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 270.0,
+						"translation.y": 378.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
@@ -1128,15 +1128,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 7496,
+						"buffer_size": 11109,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1310,
-								1310
+								8643,
+								8643
 							]
 						],
 						"settings":
@@ -1145,7 +1145,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 486.0,
+						"translation.y": 5322.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -1175,10 +1175,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 691.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
@@ -1217,7 +1217,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 28.0
 	},
 	"input":
 	{
@@ -1258,7 +1258,7 @@
 	"project": "merlin.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 52.0
 	},
 	"save_all_on_build": true,
 	"select_file":

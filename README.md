@@ -8,3 +8,6 @@ By default rendering is made through semi-optimized canvas drawing, but a pure D
  * Press A and B to control the size of noice cells.
  * Use the mouse wheels to control the zoom level in the noise function.
  
+ Test it!
+ https://godwarriors.com/__REPOS/merlin/
+ 
